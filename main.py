@@ -48,6 +48,14 @@ def fall_from_to(from_x: int, from_y: int, to_x: int, to_y: int):
     vupdate_map[to_y, to_x] = True
     moved_map[to_y, to_x] = True
     sand_map[to_y, to_x] = SAND
+    
+def fast_fall_from_to(from_x: int, from_y: int, to_x: int, to_y: int):
+    vupdate_map[from_y, from_x] = True
+    moved_map[from_y, from_x] = False
+    sand_map[from_y, from_x] = EMPTY
+    vupdate_map[to_y, to_x] = True
+    moved_map[to_y, to_x] = True
+    sand_map[to_y, to_x] = SAND
 
 def vertical_fall():
     for y in range(1, height):
@@ -58,10 +66,10 @@ def vertical_fall():
 def horizontal_fall():
     from_x = 0 if falling_side == 1 else 1
     to_x = width - 1 if falling_side == 1 else width
-    for y in range(1, height):
+    for y in range(height-1, 0, -1):
         for x in range(from_x, to_x):
             if sand_map[y, x] == EMPTY and sand_map[y-1, x + falling_side] == SAND and not moved_map[y-1, x + falling_side]:
-                fall_from_to(x + falling_side, y-1, x, y)
+                fast_fall_from_to(x + falling_side, y-1, x, y)
 
 def both_horizontal():
     global falling_side
