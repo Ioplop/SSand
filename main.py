@@ -1,5 +1,6 @@
 import numpy as np
 import pygame
+from random import random
 pygame.init()
 
 # Constants
@@ -7,12 +8,19 @@ SAND = 1
 WALL = -1
 EMPTY = 0
 
+color_mapping = {
+    SAND: (200, 200, 50),
+    WALL: (255, 255, 255),
+    EMPTY: (0, 0, 0)
+}
+
 # World dimensions
-width = 160
-height = 90
+width = 200
+height = 150
 
 # Status
 falling_side = 1
+debug_helper = 0
 
 # Sand matrices
 sand_map = np.zeros((height, width), dtype=int)
@@ -21,6 +29,11 @@ vupdate_map = np.full((height, width), True, dtype=bool)
 
 # pygame display
 screen = pygame.display.set_mode((width, height))
+
+def debug_help():
+    global debug_helper
+    print(f"DEBUG: {debug_helper}")
+    debug_helper += 1
 
 def take_one_vertical(x: int, y: int):
     while y >= 0 and sand_map[y, x] == SAND and not moved_map[y, x]:
@@ -57,6 +70,7 @@ def both_horizontal():
     horizontal_fall()
     
 def clear_flags():
+    global moved_map, vupdate_map
     moved_map = np.full((height, width), False, dtype=bool)
     vupdate_map = np.full((height, width), False, dtype=bool)
 
@@ -64,3 +78,47 @@ def full_fall():
     clear_flags()
     vertical_fall()
     both_horizontal()
+
+def update_screen():
+    for y in range(height):
+        for x in range(width):
+            if (vupdate_map[y, x]):
+                screen.set_at((x, y), color_mapping[sand_map[y, x]])
+    pygame.display.flip()
+
+def reset_sand():
+    global sand_map, vupdate_map
+    sand_map = np.zeros((height, width), dtype=int)
+    # Draw sandmap walls
+    for y in range(height):
+        sand_map[y, 0] = WALL
+        sand_map[y, width - 1] = WALL
+    for x in range(width):
+        sand_map[height-1, x] = WALL
+    
+    """
+    # Draw random sand
+    for x in range(1, width-1):
+        for y in range(0, height-1):
+            if random() <= 0.3:
+                sand_map[y, x] = SAND
+    """
+    for y in range(height//2):
+        for x in range(int(width/2.5), width - int(width/2.5)):
+            sand_map[y, x] = SAND
+    
+    # Draw the window
+    vupdate_map = np.full((height, width), True, dtype=bool)
+    update_screen()
+    
+reset_sand()
+running = True
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                reset_sand()
+    full_fall()
+    update_screen()
