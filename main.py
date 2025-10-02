@@ -1,17 +1,26 @@
 import numpy as np
 import pygame
+pygame.init()
 
+# Constants
 SAND = 1
 WALL = -1
 EMPTY = 0
 
+# World dimensions
 width = 160
 height = 90
+
+# Status
 falling_side = 1
 
+# Sand matrices
 sand_map = np.zeros((height, width), dtype=int)
 moved_map = np.full((height, width), False, dtype=bool)
 vupdate_map = np.full((height, width), True, dtype=bool)
+
+# pygame display
+screen = pygame.display.set_mode((width, height))
 
 def take_one_vertical(x: int, y: int):
     while y >= 0 and sand_map[y, x] == SAND and not moved_map[y, x]:
@@ -47,6 +56,11 @@ def both_horizontal():
     falling_side *= -1
     horizontal_fall()
     
+def clear_flags():
+    moved_map = np.full((height, width), False, dtype=bool)
+    vupdate_map = np.full((height, width), False, dtype=bool)
+
 def full_fall():
+    clear_flags()
     vertical_fall()
     both_horizontal()
