@@ -28,6 +28,8 @@ sand_map = np.zeros((height, width), dtype=int)
 moved_map = np.full((height, width), False, dtype=bool)
 # Flags
 paint_pixels = []
+active_sand = set()
+next_active_sand = set()
 
 # pygame display
 screen = pygame.display.set_mode((width, height))
@@ -36,6 +38,16 @@ def debug_help():
     global debug_helper
     print(f"DEBUG: {debug_helper}")
     debug_helper += 1
+
+def move_from_to(from_x, from_y, to_x, to_y):
+    next_active_sand.add((from_y - 1, from_x - 1))
+    next_active_sand.add((from_y - 1, from_x))
+    next_active_sand.add((from_y - 1, from_x + 1))
+    next_active_sand.add((to_y, to_x))
+    paint_pixels.append((from_y, from_x))
+    paint_pixels.append((to_y, to_x))
+    sand_map[to_y, to_x] = SAND
+    sand_map[from_y, from_x] = EMPTY
 
 def take_one_vertical(x: int, y: int):
     while y >= 0 and sand_map[y, x] == SAND and not moved_map[y, x]:
