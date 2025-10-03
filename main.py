@@ -3,6 +3,7 @@ import pygame
 from random import random
 pygame.init()
 
+
 # Constants
 SAND = 1
 WALL = -1
@@ -25,7 +26,8 @@ debug_helper = 0
 # Sand matrices
 sand_map = np.zeros((height, width), dtype=int)
 moved_map = np.full((height, width), False, dtype=bool)
-vupdate_map = np.full((height, width), True, dtype=bool)
+# Flags
+paint_pixels = []
 
 # pygame display
 screen = pygame.display.set_mode((width, height))
@@ -40,20 +42,21 @@ def take_one_vertical(x: int, y: int):
         moved_map[y, x] = True
         y -= 1
     moved_map[y + 1, x] = False
-    vupdate_map[y + 1, x] = True
+    paint_pixels.append((y+1, x))
     sand_map[y + 1, x] = EMPTY
         
 def fall_from_to(from_x: int, from_y: int, to_x: int, to_y: int):
     take_one_vertical(from_x, from_y)
-    vupdate_map[to_y, to_x] = True
+    paint_pixels.append((to_y, to_x))
     moved_map[to_y, to_x] = True
     sand_map[to_y, to_x] = SAND
     
 def fast_fall_from_to(from_x: int, from_y: int, to_x: int, to_y: int):
-    vupdate_map[from_y, from_x] = True
+    paint_pixels.append((from_y, from_x))
     moved_map[from_y, from_x] = False
     sand_map[from_y, from_x] = EMPTY
-    vupdate_map[to_y, to_x] = True
+    
+    paint_pixels.append((to_y, to_x))
     moved_map[to_y, to_x] = True
     sand_map[to_y, to_x] = SAND
 
@@ -78,24 +81,27 @@ def both_horizontal():
     horizontal_fall()
     
 def clear_flags():
-    global moved_map, vupdate_map
+    global moved_map
     moved_map = np.full((height, width), False, dtype=bool)
-    vupdate_map = np.full((height, width), False, dtype=bool)
+    paint_pixels.clear()
 
 def full_fall():
     clear_flags()
     vertical_fall()
     both_horizontal()
 
-def update_screen():
+def paint_screen():
     for y in range(height):
         for x in range(width):
-            if (vupdate_map[y, x]):
-                screen.set_at((x, y), color_mapping[sand_map[y, x]])
+            screen.set_at((x, y), color_mapping[sand_map[y, x]])
+
+def update_screen():
+    for y, x in paint_pixels:
+        screen.set_at((x, y), color_mapping[sand_map[y, x]])
     pygame.display.flip()
 
 def reset_sand():
-    global sand_map, vupdate_map
+    global sand_map
     sand_map = np.zeros((height, width), dtype=int)
     # Draw sandmap walls
     for y in range(height):
@@ -116,8 +122,7 @@ def reset_sand():
             sand_map[y, x] = SAND
     
     # Draw the window
-    vupdate_map = np.full((height, width), True, dtype=bool)
-    update_screen()
+    paint_screen()
     
 reset_sand()
 running = True
